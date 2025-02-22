@@ -1,9 +1,15 @@
-// src/app/posts/page.tsx
 "use client";
 import { useSelector, useDispatch } from "react-redux";
-import { addPost, deletePost, updatePost, selectPostById } from "@/redux/slices/postSlice";
+import { addPost, deletePost, updatePost } from "@/redux/slices/postSlice";
 import styles from "./page.module.css";
 import { useState } from "react";
+import { RootState } from "@/redux/store";
+
+interface Post {
+  id: number;
+  title: string;
+  description: string;
+}
 
 export default function Posts() {
   const [title, setTitle] = useState("");
@@ -12,52 +18,57 @@ export default function Posts() {
   const [editPostId, setEditPostId] = useState<number | null>(null);
   const [editTitle, setEditTitle] = useState("");
   const [editDescription, setEditDescription] = useState("");
-  const [selectedPost, setSelectedPost] = useState<any>(null);
+  const [selectedPost, setSelectedPost] = useState<Post | null>(null);
 
-  const posts = useSelector((state: any) => state.posts);
+  const posts = useSelector((state: RootState) => state.posts);
   const dispatch = useDispatch();
 
-  const handleAddPost = (e: any) => {
+  const handleAddPost = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!title && !description) return;
+    if (!title.trim() && !description.trim()) return;
 
-    const newPost = {
+    const newPost: Post = {
       id: Date.now(),
-      title,
-      description,
+      title: title.trim(),
+      description: description.trim(),
     };
 
     dispatch(addPost(newPost));
-
     setTitle("");
     setDescription("");
   };
 
   const handleRemovePost = (postId: number) => {
     dispatch(deletePost(postId));
+    if (selectedPost?.id === postId) {
+      setSelectedPost(null);
+    }
   };
 
-  const handleEdit = (post: any) => {
+  const handleEdit = (post: Post) => {
     setEditMode(true);
     setEditPostId(post.id);
     setEditTitle(post.title);
     setEditDescription(post.description);
   };
 
-  const handleUpdatePost = (e: any) => {
+  const handleUpdatePost = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!editTitle && !editDescription) return;
+    if (!editTitle.trim() && !editDescription.trim()) return;
 
-    const updatedPost = {
-      id: editPostId,
-      title: editTitle,
-      description: editDescription,
+    const updatedPost: Post = {
+      id: editPostId!,
+      title: editTitle.trim(),
+      description: editDescription.trim(),
     };
 
     dispatch(updatePost(updatedPost));
+    resetEditForm();
+  };
 
+  const resetEditForm = () => {
     setEditMode(false);
     setEditPostId(null);
     setEditTitle("");
@@ -65,8 +76,8 @@ export default function Posts() {
   };
 
   const handleSelectPost = (postId: number) => {
-    const post = selectPostById({ posts }, postId);
-    setSelectedPost(post);
+    const post = posts.find((post: Post) => post.id === postId);
+    setSelectedPost(post || null);
   };
 
   return (

@@ -25,4 +25,6 @@ export const store = configureStore({
 // Membuat persistor untuk redux-persist
 export const persistor = persistStore(store);
 
+export type RootState = ReturnType<typeof store.getState>;
+
 export default store;
